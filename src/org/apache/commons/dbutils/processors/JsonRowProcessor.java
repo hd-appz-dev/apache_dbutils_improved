@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import org.apache.commons.dbutils.RowProcessor;
 
 
+
 public class JsonRowProcessor implements RowProcessor<CharSequence> {
 	
 	public static final JsonRowProcessor ROW_PROCESSOR =  new JsonRowProcessor();
@@ -14,7 +15,6 @@ public class JsonRowProcessor implements RowProcessor<CharSequence> {
 	private ResultSetMetaData cache_rsmd = null;		
 	private String[] columnNames = null;
 	
-	@Override
 	public CharSequence handleRow(ResultSet rs) throws SQLException {
 		ResultSetMetaData rsmd = rs.getMetaData();
 		String[] columnNames = this.getAllColumnName(rsmd);
@@ -40,7 +40,7 @@ public class JsonRowProcessor implements RowProcessor<CharSequence> {
 	            if (null == columnName || 0 == columnName.length()) {
 	              columnName = rsmd.getColumnName(col);
 	            }
-	            columnNames[col] = columnName.toLowerCase();
+	            columnNames[col] = columnName.toUpperCase();
 	        }
 		}
         
@@ -61,20 +61,21 @@ public class JsonRowProcessor implements RowProcessor<CharSequence> {
 		
 		for(int i = 1; i < columnNames.length; i++){
 
-			//assemble the name and value like "name":"value"
-			String value = rs.getString(i);
+			//assemble the name and value like "name":"value",
+			String s = rs.getString(i);
+			//trim to null
+			String value = s!=null?s.trim():"";
+			value = value.trim().equals("")?null:value;
+			
 			if(null != value){
 				buf.append("\"")
 				.append(columnNames[i])
 				.append("\":\"")
-				.append(value);
-			}	
-			
-			if(i != columnNames.length - 1){
-				buf.append("\",");
+				.append(value)
+				.append("\",");
 			}
 		}
-		
+		buf = buf.deleteCharAt(buf.length()-1);
 		buf.append("}");
 		
 		return buf;		
